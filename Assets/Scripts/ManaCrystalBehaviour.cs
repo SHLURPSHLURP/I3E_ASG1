@@ -20,7 +20,8 @@ public class ManaCrystalBehaviour : MonoBehaviour
         Instantiate(restoredCrystalPrefab, transform.position, transform.rotation);
         Destroy(gameObject);
 
-        
+        AudioController.Instance.PlayVictory();
+
         if (successScreenCanvas != null)
         {
             successScreenCanvas.SetActive(true);

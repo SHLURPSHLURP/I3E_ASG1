@@ -88,6 +88,8 @@ public class PlayerBehaviour : MonoBehaviour
 
     void OnInteract()
     {
+        AudioController.Instance.PlaySFX(AudioController.Instance.interactSFX);
+
         if (isDead || isVictorious)
             return;
 
@@ -178,6 +180,7 @@ public class PlayerBehaviour : MonoBehaviour
 
         if (amount < 0 && amount != -100)
         {
+            AudioController.Instance.PlaySFX(AudioController.Instance.damageSFX);
             UIManager.Instance.ShowTemporaryMessage($"You took {-amount} damage!");
         }
 
@@ -185,6 +188,7 @@ public class PlayerBehaviour : MonoBehaviour
         {
             isDead = true;
             Time.timeScale = 0f;
+            AudioController.Instance.PlayDeath();
             if (deathScreenCanvas != null)
             {
                 deathScreenCanvas.SetActive(true);
