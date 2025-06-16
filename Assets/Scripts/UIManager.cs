@@ -37,7 +37,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateItemsLeft(int count)
     {
-        itemsLeftText.text = $"Items Left: {count}";
+        itemsLeftText.text = $"Crystals Left: {count}";
     }
 
     public void ShowTemporaryMessage(string message, float duration = 3f)

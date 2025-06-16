@@ -20,6 +20,8 @@ public class PlayerBehaviour : MonoBehaviour
 
     [SerializeField] Transform spawnPoint;
     [SerializeField] float interactionDistance = 5f;
+    [SerializeField] GameObject deathScreenCanvas;
+    bool isDead = false;
 
     void Start()
     {
@@ -74,6 +76,13 @@ public class PlayerBehaviour : MonoBehaviour
 
     void OnInteract()
     {
+        if (isDead)
+        {
+            Time.timeScale = 1f;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0); // Restart scene
+            return;
+        }
+        
         if (canInteract)
         {
             if (currentKey != null)
@@ -153,12 +162,28 @@ public class PlayerBehaviour : MonoBehaviour
 
         UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
 
-        if (amount < 0)
+        if (amount < 0 && amount != -100)
         {
-            UIManager.Instance.ShowTemporaryMessage($"You took {-amount} damage, be careful...");
+            UIManager.Instance.ShowTemporaryMessage($"You took {-amount} damage!");
         }
 
-        // Death handling will come in later step
+        // Death handling 
+        if (currentHealth == 0 && !isDead)
+        {
+            isDead = true;
+            Time.timeScale = 0f;
+            if (deathScreenCanvas != null)
+            {
+                deathScreenCanvas.SetActive(true);
+            }
+        }
+    }
+
+    void Die()
+    {
+        isDead = true;
+        Time.timeScale = 0f; // Optional: freezes time
+        deathScreenCanvas.SetActive(true);
     }
 
     //END OF MODIFYHEALTH()
