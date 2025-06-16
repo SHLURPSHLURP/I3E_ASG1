@@ -21,6 +21,13 @@ public class PlayerBehaviour : MonoBehaviour
     [SerializeField]
     float interactionDistance = 5f;
 
+    void Start()
+    {
+        UIManager.Instance.UpdateScore(currentScore);
+        UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
+        UIManager.Instance.UpdateItemsLeft(FindObjectsOfType<CKeyBehaviour>().Length);
+    }
+
     //WHEN PRESSING "E"
     void OnInteract()
     {
@@ -58,6 +65,7 @@ public class PlayerBehaviour : MonoBehaviour
     {
         // Increase currentScore by the amount passed as an argument
         currentScore += amt;
+        UIManager.Instance.UpdateScore(currentScore);
     }
 
 
@@ -74,6 +82,7 @@ public class PlayerBehaviour : MonoBehaviour
             if (currentHealth > maxHealth)
             {
                 currentHealth = maxHealth;
+                UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
             }
         }
     }
