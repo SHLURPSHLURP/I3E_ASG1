@@ -2,15 +2,14 @@ using UnityEngine;
 
 public class DeathZone : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void OnTriggerEnter(Collider other)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Check if the player entered the trigger zone
+        PlayerBehaviour player = other.GetComponent<PlayerBehaviour>();
+        if (player != null)
+        {
+            // Instantly set player health to 0
+            player.ModifyHealth(-player.CurrentHealth()); // We'll add a getter for currentHealth next
+        }
     }
 }

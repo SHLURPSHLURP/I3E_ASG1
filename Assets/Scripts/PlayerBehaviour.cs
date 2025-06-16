@@ -29,6 +29,8 @@ public class PlayerBehaviour : MonoBehaviour
         UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
     }
 
+    //END OF START()
+
     void Update()
     {
         // ENERGY CRYSTAL DAMAGE TIMER
@@ -67,6 +69,8 @@ public class PlayerBehaviour : MonoBehaviour
             currentKey = null;
         }
     }
+    //END OF UPDATE()
+
 
     void OnInteract()
     {
@@ -131,11 +135,15 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
+    //END OF ONINTERACT()
+
     public void ModifyScore(int amt)
     {
         currentScore += amt;
         UIManager.Instance.UpdateScore(currentScore);
     }
+
+    //END OF MODIFYSCORE()
 
     public void ModifyHealth(int amount)
     {
@@ -152,6 +160,21 @@ public class PlayerBehaviour : MonoBehaviour
 
         // Death handling will come in later step
     }
+
+    //END OF MODIFYHEALTH()
+
+    public int CurrentHealth()
+    {
+        return currentHealth;
+    }
+
+    public void SetHealthToMax()
+    {
+        currentHealth = maxHealth;
+        UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
+    }
+
+
 
     void OnTriggerEnter(Collider other)
     {
@@ -172,6 +195,8 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
+    //END OF ONTRIGGERENTER()
+
     void OnTriggerExit(Collider other)
     {
         if (currentKey != null && other.gameObject == currentKey.gameObject)
@@ -186,3 +211,5 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 }
+
+//END OF ONTRIGGEREXIT()
