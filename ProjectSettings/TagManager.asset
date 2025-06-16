@@ -8,6 +8,8 @@ TagManager:
   - Collectible
   - Crystal
   - Door
+  - GuidanceCrystal
+  - LibertyCrystal
   layers:
   - Default
   - TransparentFX

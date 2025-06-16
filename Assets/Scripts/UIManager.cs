@@ -1,20 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI itemsLeftText;
-    public Slider healthSlider;
+    public TMP_Text scoreText;
+    public TMP_Text itemsLeftText;
+    public TMP_Text messageText;
+
+    public Slider healthSlider; // <-- Slider instead of text
 
     void Awake()
     {
-        // Singleton so PlayerBehaviour can call it easily
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
     }
 
     public void UpdateScore(int score)
@@ -22,19 +26,31 @@ public class UIManager : MonoBehaviour
         scoreText.text = "Score: " + score;
     }
 
-    public void UpdateItemsLeft(int items)
-    {
-        itemsLeftText.text = "Crystals Left: " + items;
-    }
-
     public void UpdateHealth(int current, int max)
     {
-        healthSlider.maxValue = max;
-        healthSlider.value = current;
+        if (healthSlider != null)
+        {
+            healthSlider.maxValue = max;
+            healthSlider.value = current;
+        }
     }
 
-    public void SetVisible(bool visible)
+    public void UpdateItemsLeft(int count)
     {
-        gameObject.SetActive(visible);
+        itemsLeftText.text = $"Items Left: {count}";
+    }
+
+    public void ShowTemporaryMessage(string message, float duration = 3f)
+    {
+        StopAllCoroutines(); // in case something's already showing
+        StartCoroutine(DisplayMessage(message, duration));
+    }
+
+    IEnumerator DisplayMessage(string message, float duration)
+    {
+        messageText.text = message;
+        messageText.enabled = true;
+        yield return new WaitForSeconds(duration);
+        messageText.enabled = false;
     }
 }
