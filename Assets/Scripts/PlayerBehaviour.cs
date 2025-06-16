@@ -2,30 +2,24 @@ using UnityEngine;
 
 public class PlayerBehaviour : MonoBehaviour
 {
-    // Player's maximum health
     int maxHealth = 100;
-    // Player's current health
     int currentHealth = 100;
-    // Player's current score
     int currentScore = 0;
-    // Flag to check if the player can interact with objects
-    bool canInteract = false;
-    // Number of items left
     int totalItems = 0;
 
-    // Flag for whether the player has collected the Liberty Crystal
+    bool canInteract = false;
     bool hasLibertyCrystal = false;
+    bool hasEnergyCrystal = false;
+
+    float energyTimer = 0f;
+    float energyInterval = 10f;
 
     CKeyBehaviour currentKey = null;
     DoorBehaviour currentDoor = null;
-
     bool doorClosed = true;
 
-    [SerializeField]
-    Transform spawnPoint;
-
-    [SerializeField]
-    float interactionDistance = 5f;
+    [SerializeField] Transform spawnPoint;
+    [SerializeField] float interactionDistance = 5f;
 
     void Start()
     {
@@ -35,42 +29,87 @@ public class PlayerBehaviour : MonoBehaviour
         UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
     }
 
-    //WHEN PRESSING "E"
+    void Update()
+    {
+        // ENERGY CRYSTAL DAMAGE TIMER
+        if (hasEnergyCrystal)
+        {
+            energyTimer += Time.deltaTime;
+            if (energyTimer >= energyInterval)
+            {
+                ModifyHealth(-5);
+                energyTimer = 0f;
+            }
+        }
+
+        Debug.Log(currentHealth);
+
+        // RAYCAST DETECTION
+        RaycastHit hitInfo;
+        if (Physics.Raycast(spawnPoint.position, spawnPoint.forward, out hitInfo, interactionDistance))
+        {
+            if (hitInfo.collider.gameObject.CompareTag("Crystal")
+                || hitInfo.collider.gameObject.CompareTag("GuidanceCrystal")
+                || hitInfo.collider.gameObject.CompareTag("LibertyCrystal")
+                || hitInfo.collider.gameObject.CompareTag("EnergyCrystal"))
+            {
+                if (currentKey != null)
+                    currentKey.Unhighlight();
+
+                canInteract = true;
+                currentKey = hitInfo.collider.gameObject.GetComponent<CKeyBehaviour>();
+                currentKey.Highlight();
+            }
+        }
+        else if (currentKey != null)
+        {
+            currentKey.Unhighlight();
+            currentKey = null;
+        }
+    }
+
     void OnInteract()
     {
         if (canInteract)
         {
-            if (currentKey != null) // Crystal key collection
+            if (currentKey != null)
             {
                 Debug.Log("Interacting with crystal key");
                 currentKey.Collect(this);
-
-                totalItems--; // Decrease item count
+                totalItems--;
                 UIManager.Instance.UpdateItemsLeft(totalItems);
 
-                // Crystal-specific logic
                 if (currentKey.CompareTag("GuidanceCrystal"))
                 {
                     Debug.Log("Guidance Crystal collected!");
                     FindObjectOfType<MapToggle>().UnlockMap();
-                    UIManager.Instance.ShowTemporaryMessage("Guidance crystal collected, press G to open map and find other crystal keys");
+                    UIManager.Instance.ShowTemporaryMessage("Guidance crystal collected, press G for hints to other keys...");
                 }
                 else if (currentKey.CompareTag("LibertyCrystal"))
                 {
                     Debug.Log("Liberty Crystal collected!");
                     hasLibertyCrystal = true;
-                    UIManager.Instance.ShowTemporaryMessage("Liberty crystal collected, you may now open the door");
+                    UIManager.Instance.ShowTemporaryMessage("Liberty crystal collected, you may now open the door...");
+                }
+                else if (currentKey.CompareTag("EnergyCrystal"))
+                {
+                    Debug.Log("Energy Crystal collected!");
+                    hasEnergyCrystal = true;
+                    UIManager.Instance.ShowTemporaryMessage("Energy crystal collected. You feel a draining force... (Health will minus by -5 every 10s)");
+                }
+                else
+                {
+                    UIManager.Instance.ShowTemporaryMessage("Crystal Key collected!");
                 }
 
-                // Reset interaction
                 canInteract = false;
                 currentKey = null;
             }
-            else if (currentDoor != null) // Door interaction
+            else if (currentDoor != null)
             {
                 if (!hasLibertyCrystal)
                 {
-                    Debug.Log("You need the Liberty Crystal to open this door!");
+                    Debug.Log("You need the Liberty Crystal to open this door...");
                     UIManager.Instance.ShowTemporaryMessage("You need the liberty crystal to open the door");
                     return;
                 }
@@ -92,32 +131,36 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
-    //CHANGING SCORE
     public void ModifyScore(int amt)
     {
         currentScore += amt;
         UIManager.Instance.UpdateScore(currentScore);
     }
 
-    //CHANGING HEALTH
     public void ModifyHealth(int amount)
     {
-        if (currentHealth < maxHealth)
+        currentHealth += amount;
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
+        if (currentHealth < 0) currentHealth = 0;
+
+        UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
+
+        if (amount < 0)
         {
-            currentHealth += amount;
-            if (currentHealth > maxHealth)
-            {
-                currentHealth = maxHealth;
-            }
-            UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
+            UIManager.Instance.ShowTemporaryMessage($"You took {-amount} damage, be careful...");
         }
+
+        // Death handling will come in later step
     }
 
     void OnTriggerEnter(Collider other)
     {
         Debug.Log(other.gameObject.name);
 
-        if (other.CompareTag("Crystal") || other.CompareTag("GuidanceCrystal") || other.CompareTag("LibertyCrystal"))
+        if (other.CompareTag("Crystal")
+            || other.CompareTag("GuidanceCrystal")
+            || other.CompareTag("LibertyCrystal")
+            || other.CompareTag("EnergyCrystal"))
         {
             canInteract = true;
             currentKey = other.GetComponent<CKeyBehaviour>();
@@ -140,32 +183,6 @@ public class PlayerBehaviour : MonoBehaviour
         {
             canInteract = false;
             currentDoor = null;
-        }
-    }
-
-    void Update()
-    {
-        RaycastHit hitInfo;
-        if (Physics.Raycast(spawnPoint.position, spawnPoint.forward, out hitInfo, interactionDistance))
-        {
-            if (hitInfo.collider.gameObject.CompareTag("Crystal")
-                || hitInfo.collider.gameObject.CompareTag("GuidanceCrystal")
-                || hitInfo.collider.gameObject.CompareTag("LibertyCrystal"))
-            {
-                if (currentKey != null)
-                {
-                    currentKey.Unhighlight();
-                }
-
-                canInteract = true;
-                currentKey = hitInfo.collider.gameObject.GetComponent<CKeyBehaviour>();
-                currentKey.Highlight();
-            }
-        }
-        else if (currentKey != null)
-        {
-            currentKey.Unhighlight();
-            currentKey = null;
         }
     }
 }
