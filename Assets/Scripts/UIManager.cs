@@ -24,7 +24,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateItemsLeft(int items)
     {
-        itemsLeftText.text = "Items Left: " + items;
+        itemsLeftText.text = "Crystals Left: " + items;
     }
 
     public void UpdateHealth(int current, int max)

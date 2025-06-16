@@ -4,7 +4,7 @@ public class CKeyBehaviour : MonoBehaviour
 {
     MeshRenderer myMeshRenderer;
     [SerializeField]
-    int keyValue = 1;
+    int keyValue = 50;
 
     [SerializeField]
     Material highlightMat;

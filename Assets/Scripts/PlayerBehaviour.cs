@@ -10,6 +10,8 @@ public class PlayerBehaviour : MonoBehaviour
     int currentScore = 0;
     // Flag to check if the player can interact with objects
     bool canInteract = false;
+    // Number of items left
+    int totalItems = 0;
     CKeyBehaviour currentKey = null;
     DoorBehaviour currentDoor = null;
 
@@ -26,6 +28,11 @@ public class PlayerBehaviour : MonoBehaviour
         UIManager.Instance.UpdateScore(currentScore);
         UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
         UIManager.Instance.UpdateItemsLeft(FindObjectsOfType<CKeyBehaviour>().Length);
+
+        totalItems = FindObjectsOfType<CKeyBehaviour>().Length;
+        UIManager.Instance.UpdateItemsLeft(totalItems);
+        UIManager.Instance.UpdateScore(currentScore);
+        UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
     }
 
     //WHEN PRESSING "E"
@@ -37,6 +44,9 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 Debug.Log("Interacting with crystal key");
                 currentKey.Collect(this);
+                
+                totalItems--; // Decrease item count
+                UIManager.Instance.UpdateItemsLeft(totalItems);
             }
 
             else if (currentDoor != null)
