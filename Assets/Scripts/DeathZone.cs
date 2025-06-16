@@ -1,7 +1,10 @@
 using UnityEngine;
 
+/// Handles instant player death when entering the death zone trigger.
 public class DeathZone : MonoBehaviour
 {
+    /// Called when another collider enters this trigger collider.
+    /// Checks if the collider belongs to the player and sets their health to zero.
     private void OnTriggerEnter(Collider other)
     {
         // Check if the player entered the trigger zone
