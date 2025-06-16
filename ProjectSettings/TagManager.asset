@@ -11,6 +11,8 @@ TagManager:
   - GuidanceCrystal
   - LibertyCrystal
   - EnergyCrystal
+  - ManaCrystal
+  - RestoredManaCrystal
   layers:
   - Default
   - TransparentFX

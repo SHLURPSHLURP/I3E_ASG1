@@ -17,6 +17,7 @@ public class PlayerBehaviour : MonoBehaviour
     CKeyBehaviour currentKey = null;
     DoorBehaviour currentDoor = null;
     bool doorClosed = true;
+    ManaCrystalBehaviour currentManaCrystal = null;
 
     [SerializeField] Transform spawnPoint;
     [SerializeField] float interactionDistance = 5f;
@@ -41,7 +42,7 @@ public class PlayerBehaviour : MonoBehaviour
             energyTimer += Time.deltaTime;
             if (energyTimer >= energyInterval)
             {
-                ModifyHealth(-5);
+                ModifyHealth(-10);
                 energyTimer = 0f;
             }
         }
@@ -82,15 +83,21 @@ public class PlayerBehaviour : MonoBehaviour
             UnityEngine.SceneManagement.SceneManager.LoadScene(0); // Restart scene
             return;
         }
-        
+
         if (canInteract)
         {
             if (currentKey != null)
             {
                 Debug.Log("Interacting with crystal key");
                 currentKey.Collect(this);
+
                 totalItems--;
                 UIManager.Instance.UpdateItemsLeft(totalItems);
+
+                if (totalItems == 0) //once there are no more crystals
+                {
+                    UIManager.Instance.ShowFinalObjectiveTemporary("All sacred Crystal Keys are in your possession. Return them to the mana crystal at once.");
+                }
 
                 if (currentKey.CompareTag("GuidanceCrystal"))
                 {
@@ -108,7 +115,7 @@ public class PlayerBehaviour : MonoBehaviour
                 {
                     Debug.Log("Energy Crystal collected!");
                     hasEnergyCrystal = true;
-                    UIManager.Instance.ShowTemporaryMessage("Energy crystal collected. You feel a draining force... (Health will minus by -5 every 10s)");
+                    UIManager.Instance.ShowTemporaryMessage("Energy crystal collected. You feel a draining force... (Health will minus by -10 every 10s)");
                 }
                 else
                 {
@@ -140,6 +147,11 @@ public class PlayerBehaviour : MonoBehaviour
                     Debug.Log("Door closed!");
                     doorClosed = true;
                 }
+            }
+
+            else if (currentManaCrystal != null)
+            {
+                currentManaCrystal.TryActivate(this);
             }
         }
     }
@@ -186,6 +198,11 @@ public class PlayerBehaviour : MonoBehaviour
         deathScreenCanvas.SetActive(true);
     }
 
+    public bool HasAllCrystals()
+    {
+        return totalItems == 0;
+    }
+
     //END OF MODIFYHEALTH()
 
     public int CurrentHealth()
@@ -218,6 +235,11 @@ public class PlayerBehaviour : MonoBehaviour
             canInteract = true;
             currentDoor = other.GetComponent<DoorBehaviour>();
         }
+        else if (other.CompareTag("ManaCrystal"))
+        {
+            canInteract = true;
+            currentManaCrystal = other.GetComponent<ManaCrystalBehaviour>();
+        }
     }
 
     //END OF ONTRIGGERENTER()
@@ -233,6 +255,11 @@ public class PlayerBehaviour : MonoBehaviour
         {
             canInteract = false;
             currentDoor = null;
+        }
+        if (currentManaCrystal != null && other.gameObject == currentManaCrystal.gameObject)
+        {
+            canInteract = false;
+            currentManaCrystal = null;
         }
     }
 }

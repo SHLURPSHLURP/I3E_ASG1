@@ -13,6 +13,9 @@ public class UIManager : MonoBehaviour
 
     public Slider healthSlider; // <-- Slider instead of text
 
+    [SerializeField] private TMP_Text finalObjectiveText;
+
+
     void Awake()
     {
         if (Instance == null)
@@ -44,6 +47,19 @@ public class UIManager : MonoBehaviour
     {
         StopAllCoroutines(); // in case something's already showing
         StartCoroutine(DisplayMessage(message, duration));
+    }
+
+    public void ShowFinalObjectiveTemporary(string message, float duration = 10f)
+    {
+        finalObjectiveText.text = message;
+        finalObjectiveText.gameObject.SetActive(true);
+        CancelInvoke(nameof(HideFinalObjective));
+        Invoke(nameof(HideFinalObjective), duration);
+    }
+
+    private void HideFinalObjective()
+    {
+        finalObjectiveText.gameObject.SetActive(false);
     }
 
     IEnumerator DisplayMessage(string message, float duration)
