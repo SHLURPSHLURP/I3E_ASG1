@@ -12,6 +12,10 @@ public class PlayerBehaviour : MonoBehaviour
     bool canInteract = false;
     // Number of items left
     int totalItems = 0;
+
+    // Flag for whether the player has collected the Liberty Crystal
+    bool hasLibertyCrystal = false;
+
     CKeyBehaviour currentKey = null;
     DoorBehaviour currentDoor = null;
 
@@ -25,10 +29,6 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Start()
     {
-        UIManager.Instance.UpdateScore(currentScore);
-        UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
-        UIManager.Instance.UpdateItemsLeft(FindObjectsOfType<CKeyBehaviour>().Length);
-
         totalItems = FindObjectsOfType<CKeyBehaviour>().Length;
         UIManager.Instance.UpdateItemsLeft(totalItems);
         UIManager.Instance.UpdateScore(currentScore);
@@ -44,15 +44,37 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 Debug.Log("Interacting with crystal key");
                 currentKey.Collect(this);
-                
+
                 totalItems--; // Decrease item count
                 UIManager.Instance.UpdateItemsLeft(totalItems);
-            }
 
+                // Check which crystal was collected by tag
+                if (currentKey.CompareTag("GuidanceCrystal"))
+                {
+                    Debug.Log("Guidance Crystal collected!");
+                    FindObjectOfType<MapToggle>().UnlockMap();
+                }
+                else if (currentKey.CompareTag("LibertyCrystal"))
+                {
+                    Debug.Log("Liberty Crystal collected!");
+                    hasLibertyCrystal = true;
+                }
+
+                // After collecting, reset interaction flags
+                canInteract = false;
+                currentKey = null;
+            }
             else if (currentDoor != null)
             {
+                // Only allow door interaction if Liberty Crystal is collected
+                if (!hasLibertyCrystal)
+                {
+                    Debug.Log("You need the Liberty Crystal to open this door!");
+                    return;
+                }
+
                 Debug.Log("Interacting with door");
-                if (doorClosed == true)
+                if (doorClosed)
                 {
                     currentDoor.Open();       // Opens the door
                     Debug.Log("Door open!");
@@ -68,8 +90,6 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
-
-
     //CHANGING SCORE
     public void ModifyScore(int amt)
     {
@@ -77,7 +97,6 @@ public class PlayerBehaviour : MonoBehaviour
         currentScore += amt;
         UIManager.Instance.UpdateScore(currentScore);
     }
-
 
     //CHANGING HEALTH
     public void ModifyHealth(int amount)
@@ -92,20 +111,17 @@ public class PlayerBehaviour : MonoBehaviour
             if (currentHealth > maxHealth)
             {
                 currentHealth = maxHealth;
-                UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
             }
+            UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
         }
     }
-
 
     void OnTriggerEnter(Collider other)
     {
         Debug.Log(other.gameObject.name);
-        // Check if the player detects a trigger collider tagged as "Collectible" or "Door"
-        if (other.CompareTag("Crystal"))
+        // Check if the player detects a trigger collider tagged as any crystal or door
+        if (other.CompareTag("Crystal") || other.CompareTag("GuidanceCrystal") || other.CompareTag("LibertyCrystal"))
         {
-            // Set the canInteract flag to true
-            // Get the CoinBehaviour component from the detected object
             canInteract = true;
             currentKey = other.GetComponent<CKeyBehaviour>();
         }
@@ -118,18 +134,16 @@ public class PlayerBehaviour : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        // Check if the player has a detected coin or door
-        if (currentKey != null)
+        // Check if the player has a detected crystal or door and exited it
+        if (currentKey != null && other.gameObject == currentKey.gameObject)
         {
-            // If the object that exited the trigger is the same as the current coin
-            if (other.gameObject == currentKey.gameObject)
-            {
-                // Set the canInteract flag to false
-                // Set the current coin to null
-                // This prevents the player from interacting with the coin
-                canInteract = false;
-                currentKey = null;
-            }
+            canInteract = false;
+            currentKey = null;
+        }
+        if (currentDoor != null && other.gameObject == currentDoor.gameObject)
+        {
+            canInteract = false;
+            currentDoor = null;
         }
     }
 
@@ -138,8 +152,9 @@ public class PlayerBehaviour : MonoBehaviour
         RaycastHit hitInfo;
         if (Physics.Raycast(spawnPoint.position, spawnPoint.forward, out hitInfo, interactionDistance))
         {
-            //Debug.Log("Raycast hit: " + hitInfo.collider.gameObject.name);
-            if (hitInfo.collider.gameObject.CompareTag("Crystal"))
+            if (hitInfo.collider.gameObject.CompareTag("Crystal") 
+                || hitInfo.collider.gameObject.CompareTag("GuidanceCrystal") 
+                || hitInfo.collider.gameObject.CompareTag("LibertyCrystal"))
             {
                 if (currentKey != null)
                 {
@@ -149,22 +164,12 @@ public class PlayerBehaviour : MonoBehaviour
                 canInteract = true;
                 currentKey = hitInfo.collider.gameObject.GetComponent<CKeyBehaviour>();
                 currentKey.Highlight();
-
-
             }
-           
-
         }
-
-
-
         else if (currentKey != null)
         {
             currentKey.Unhighlight();
             currentKey = null;
         }
-        
-    
- 
     }
 }
