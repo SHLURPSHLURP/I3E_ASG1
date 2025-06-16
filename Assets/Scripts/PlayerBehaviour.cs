@@ -16,13 +16,16 @@ public class PlayerBehaviour : MonoBehaviour
 
     CKeyBehaviour currentKey = null;
     DoorBehaviour currentDoor = null;
-    bool doorClosed = true;
     ManaCrystalBehaviour currentManaCrystal = null;
+
+    bool doorClosed = true;
+    bool isDead = false;
+    bool isVictorious = false;
 
     [SerializeField] Transform spawnPoint;
     [SerializeField] float interactionDistance = 5f;
     [SerializeField] GameObject deathScreenCanvas;
-    bool isDead = false;
+    [SerializeField] GameObject successScreenCanvas;
 
     void Start()
     {
@@ -31,8 +34,6 @@ public class PlayerBehaviour : MonoBehaviour
         UIManager.Instance.UpdateScore(currentScore);
         UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
     }
-
-    //END OF START()
 
     void Update()
     {
@@ -47,7 +48,19 @@ public class PlayerBehaviour : MonoBehaviour
             }
         }
 
-        Debug.Log(currentHealth);
+        if (isDead && Input.GetKeyDown(KeyCode.E))
+        {
+            Time.timeScale = 1f;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            return;
+        }
+
+        if (isVictorious && Input.GetKeyDown(KeyCode.E))
+        {
+            Time.timeScale = 1f;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            return;
+        }
 
         // RAYCAST DETECTION
         RaycastHit hitInfo;
@@ -72,17 +85,11 @@ public class PlayerBehaviour : MonoBehaviour
             currentKey = null;
         }
     }
-    //END OF UPDATE()
-
 
     void OnInteract()
     {
-        if (isDead)
-        {
-            Time.timeScale = 1f;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(0); // Restart scene
+        if (isDead || isVictorious)
             return;
-        }
 
         if (canInteract)
         {
@@ -94,7 +101,7 @@ public class PlayerBehaviour : MonoBehaviour
                 totalItems--;
                 UIManager.Instance.UpdateItemsLeft(totalItems);
 
-                if (totalItems == 0) //once there are no more crystals
+                if (totalItems == 0)
                 {
                     UIManager.Instance.ShowFinalObjectiveTemporary("All sacred Crystal Keys are in your possession. Return them to the mana crystal at once.");
                 }
@@ -148,7 +155,6 @@ public class PlayerBehaviour : MonoBehaviour
                     doorClosed = true;
                 }
             }
-
             else if (currentManaCrystal != null)
             {
                 currentManaCrystal.TryActivate(this);
@@ -156,15 +162,11 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
-    //END OF ONINTERACT()
-
     public void ModifyScore(int amt)
     {
         currentScore += amt;
         UIManager.Instance.UpdateScore(currentScore);
     }
-
-    //END OF MODIFYSCORE()
 
     public void ModifyHealth(int amount)
     {
@@ -179,7 +181,6 @@ public class PlayerBehaviour : MonoBehaviour
             UIManager.Instance.ShowTemporaryMessage($"You took {-amount} damage!");
         }
 
-        // Death handling 
         if (currentHealth == 0 && !isDead)
         {
             isDead = true;
@@ -191,19 +192,10 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
-    void Die()
-    {
-        isDead = true;
-        Time.timeScale = 0f; // Optional: freezes time
-        deathScreenCanvas.SetActive(true);
-    }
-
     public bool HasAllCrystals()
     {
         return totalItems == 0;
     }
-
-    //END OF MODIFYHEALTH()
 
     public int CurrentHealth()
     {
@@ -216,8 +208,7 @@ public class PlayerBehaviour : MonoBehaviour
         UIManager.Instance.UpdateHealth(currentHealth, maxHealth);
     }
 
-
-
+  
     void OnTriggerEnter(Collider other)
     {
         Debug.Log(other.gameObject.name);
@@ -242,8 +233,6 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 
-    //END OF ONTRIGGERENTER()
-
     void OnTriggerExit(Collider other)
     {
         if (currentKey != null && other.gameObject == currentKey.gameObject)
@@ -263,5 +252,3 @@ public class PlayerBehaviour : MonoBehaviour
         }
     }
 }
-
-//END OF ONTRIGGEREXIT()

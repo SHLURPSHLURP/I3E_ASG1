@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ManaCrystalBehaviour : MonoBehaviour
 {
     [SerializeField] private GameObject restoredCrystalPrefab;
+    [SerializeField] private GameObject successScreenCanvas;
+
+    private bool gameFinished = false;
 
     public void TryActivate(PlayerBehaviour player)
     {
@@ -14,8 +18,23 @@ public class ManaCrystalBehaviour : MonoBehaviour
 
         Debug.Log("Mana Crystal Restored!");
         Instantiate(restoredCrystalPrefab, transform.position, transform.rotation);
-        Destroy(gameObject); // remove the old red mana crystal
-        UIManager.Instance.ShowFinalObjectiveTemporary("Mana crystal restored. Peace returns to the kingdom...", 10f);
+        Destroy(gameObject);
+
+        
+        if (successScreenCanvas != null)
+        {
+            successScreenCanvas.SetActive(true);
+            Time.timeScale = 0f;
+            gameFinished = true;
+        }
+    }
+
+    void Update()
+    {
+        if (gameFinished && Input.GetKeyDown(KeyCode.E))
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(0);
+        }
     }
 }
-
